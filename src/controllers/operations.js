@@ -9,25 +9,32 @@ const client = new MongoClient(uri);
 
 async function main() {
     await client.connect();
-
+    
     // Выбор коллекции
     const db = client.db("ledokol");
-    const collection = db.collection("users");
-
-    // Получение данных
-    const updateResult = await collection.updateMany(
-        {}, // Пустой объект выбирает все документы в коллекции
-        {
-            $set: {
-                role: 'creator',
-                join_date: 1672960000,
-                subscriptions: [1, 3, 4]
-            }
-        }
-    );
-
-    // Вывод данных
-    console.log(updateResult);
+    const collection = db.collection("posts");
+    
+    // Находим все посты
+    const posts = await collection.find().toArray();
+    
+    // Для каждого поста обновляем массив likes
+    for (const post of posts) {
+        // Перебираем массив likes и обновляем значения
+        post.likes.forEach(like => {
+            like.liker_id = "41"; // Заменяем идентификатор на "41"
+            like.timestamp = 1709125712; // Устанавливаем новый формат времени
+        });
+        
+        // Обновляем пост в базе данных
+        await collection.updateOne(
+          { _id: post._id }, // Указываем пост по его _id
+          { $set: { likes: post.likes } } // Устанавливаем новое значение для likes
+        );
+    }
+    
+    console.log("All posts updated with modified likes array.");
+    client.close();
 }
+
 
 main().catch(console.error);

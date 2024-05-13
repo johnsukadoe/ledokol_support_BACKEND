@@ -1,4 +1,4 @@
-const {Post, Creator} = require("../models/mongo");
+const {Post, Creator, Likes} = require("../models/mongo");
 
 const getPosts = async (req, res) => {
     try {
@@ -114,12 +114,41 @@ const editPost = async (req, res) => {
     }
 };
 
+const likePost = async (req, res) => {
+    const { postId, likerId } = req.body.params;
+    
+    
+    const data = await Post.updateOne(
+      { _id: postId },
+      { $push: { likes: { liker_id: likerId, timestamp: Math.floor(new Date().getTime() / 1000) } } }
+    );
+    
+    res.status(200).json(data);
+};
 
+const unlikePost = async (req, res) => {
+    const { postId, likerId } = req.body.params;
+    
+    try {
+        // Находим пост по его _id и удаляем лайк пользователя
+        const data = await Post.updateOne(
+          { _id: postId },
+          { $pull: { likes: { liker_id: likerId } } }
+        );
+        
+        res.status(200).json(data);
+    } catch (error) {
+        console.error("Error occurred while unliking the post:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
 
 
 module.exports = {
     getPosts,
     createPost,
     removePost,
-    editPost
+    editPost,
+    unlikePost,
+    likePost
 }

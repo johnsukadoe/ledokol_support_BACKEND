@@ -4,7 +4,7 @@ const cors = require('cors');
 const { MongoClient } = require('mongodb');
 
 const {login, signup} = require('./controllers/signController')
-const {getPosts, createPost, removePost, editPost} = require('./controllers/postController')
+const {getPosts, createPost, removePost, editPost, unlikePost, likePost} = require('./controllers/postController')
 const {getUsers, deleteUserById} = require('./controllers/userController')
 const {getSubscriptions, unsubscribeCreator, subscribeCreator} = require("./controllers/subscriptionsController");
 const {getCreator, updateCreator, getCreators} = require("./controllers/creatorController");
@@ -36,45 +36,9 @@ app.post('/subscriptions/subscribe', subscribeCreator)
 app.post('/posts', createPost);
 app.post('/signup', signup);
 app.post('/post/remove', removePost)
+app.post('/post/like', likePost)
+app.post('/post/unlike', unlikePost)
 
-
-// app.post('ledokol-api/posts/:postId/like', async (req, res) => {
-//   try {
-//     const postId = req.params.postId;
-//     const userId = req.body.userId;
-//
-//     const updatedPost = await CombinedPosts.findByIdAndUpdate(
-//         postId,
-//         { $addToSet: { likes: { user_id: userId, timestamp: Date.now()/1000 } } },
-//         { new: true }
-//     );
-//
-//
-//     res.json(updatedPost);
-//   } catch (error) {
-//     console.error('Error adding like:', error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
-//
-// app.post('ledokol-api/posts/:postId/unlike', async (req, res) => {
-//   try {
-//     const postId = req.params.postId;
-//     const userId = req.body.userId;
-//
-//     const updatedPost = await CombinedPosts.findByIdAndUpdate(
-//         postId,
-//         { $pull: { likes: { user_id: userId } } },
-//         { new: true }
-//     );
-//
-//
-//     res.json(updatedPost);
-//   } catch (error) {
-//     console.error('Error removing like:', error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
 
 
 app.listen(port, () => {

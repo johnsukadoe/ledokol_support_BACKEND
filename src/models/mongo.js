@@ -32,9 +32,9 @@ const Post = mongoose.model('Post', {
     descriptionRU:String,
     descriptionEN:String,
     timestamp:Number,
-    preview:Object
+    preview:Object,
+    likes:Array,
 }, 'posts');
-
 const Creator = mongoose.model('Creator', {
     _id:Number,
     user_id: Number,
