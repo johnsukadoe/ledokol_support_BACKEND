@@ -1,4 +1,4 @@
-const {Post, Creator, Likes} = require("../models/mongo");
+const {Post, Creator, Likes, User} = require("../models/mongo");
 
 const getPosts = async (req, res) => {
     try {
@@ -142,6 +142,106 @@ const unlikePost = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+const commentPost = async (req, res) => {
+    const { comment, postId, userId, parentId } = req.body.params;
+    
+    try {
+        const post = await Post.findById(postId);
+        
+        if (!post) {
+            return res.status(404).json({ error: "Post not found" });
+        }
+        
+        const user = await User.findOne({ user_id: userId });
+        
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        
+        let newComment = {
+            comment_id: parentId ? post.comments.length + 1 : post.comments.length + 5,
+            text: comment,
+            timestamp: Date.now(),
+            user: {
+                id: user.user_id,
+                username: user.username,
+                logo: user.logo,
+            }
+        };
+        
+        if (parentId) {
+            const parentComment = post.comments.find(comment => comment.comment_id === parentId);
+            if (!parentComment) {
+                return res.status(404).json({ error: "Parent comment not found" });
+            }
+            parentComment.responses.push(newComment);
+        } else {
+            post.comments.push(newComment);
+        }
+        
+        await post.save();
+        res.status(200).json({ success: true, message: "Comment added successfully" });
+    } catch (error) {
+        console.error("Error occurred while commenting the post:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+const editComment = async (req, res) => {
+    const { commentId, newText, parentId } = req.body.params;
+    
+    try {
+        const query = parentId ? { "comments.responses.comment_id": commentId } : { "comments.comment_id": commentId };
+        const post = await Post.findOne(query);
+        
+        if (!post) {
+            return res.status(404).json({ error: "Comment not found" });
+        }
+        
+        const commentToUpdate = parentId ? post.comments.find(comment => comment.responses.find(response => response.comment_id === commentId)) :
+          post.comments.find(comment => comment.comment_id === commentId);
+        
+        if (!commentToUpdate) {
+            return res.status(404).json({ error: "Comment not found" });
+        }
+        
+        commentToUpdate.text = newText;
+        await post.save();
+        
+        res.status(200).json({ success: true, message: "Comment updated successfully" });
+    } catch (error) {
+        console.error("Error occurred while editing the comment:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+const removeComment = async (req, res) => {
+    const { commentId, parentId } = req.body.params;
+    
+    try {
+        const query = parentId ? { "comments.responses.comment_id": commentId } : { "comments.comment_id": commentId };
+        const post = await Post.findOne(query);
+        
+        if (!post) {
+            return res.status(404).json({ error: "Comment not found" });
+        }
+        
+        if (parentId) {
+            post.comments.forEach(comment => {
+                comment.responses = comment.responses.filter(response => response.comment_id !== commentId);
+            });
+        } else {
+            post.comments = post.comments.filter(comment => comment.comment_id !== commentId);
+        }
+        
+        await post.save();
+        
+        res.status(200).json({ success: true, message: "Comment removed successfully" });
+    } catch (error) {
+        console.error("Error occurred while removing the comment:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
 
 
 module.exports = {
@@ -150,5 +250,8 @@ module.exports = {
     removePost,
     editPost,
     unlikePost,
-    likePost
+    likePost,
+    commentPost,
+    editComment,
+    removeComment
 }

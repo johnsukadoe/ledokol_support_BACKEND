@@ -34,6 +34,7 @@ const Post = mongoose.model('Post', {
     timestamp:Number,
     preview:Object,
     likes:Array,
+    comments:Array,
 }, 'posts');
 const Creator = mongoose.model('Creator', {
     _id:Number,

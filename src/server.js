@@ -4,7 +4,7 @@ const cors = require('cors');
 const { MongoClient } = require('mongodb');
 
 const {login, signup} = require('./controllers/signController')
-const {getPosts, createPost, removePost, editPost, unlikePost, likePost} = require('./controllers/postController')
+const {getPosts, createPost, removePost, editPost, unlikePost, likePost, commentPost, editComment, removeComment} = require('./controllers/postController')
 const {getUsers, deleteUserById} = require('./controllers/userController')
 const {getSubscriptions, unsubscribeCreator, subscribeCreator} = require("./controllers/subscriptionsController");
 const {getCreator, updateCreator, getCreators} = require("./controllers/creatorController");
@@ -26,8 +26,10 @@ app.get('/creators', getCreators)
 
 app.put('/post', editPost)
 app.put('/creator', updateCreator)
+app.put('/post/comment/edit', editComment)
 
 app.delete('/users', deleteUserById)
+app.delete('/post/comment', removeComment)
 
 
 
@@ -38,6 +40,7 @@ app.post('/signup', signup);
 app.post('/post/remove', removePost)
 app.post('/post/like', likePost)
 app.post('/post/unlike', unlikePost)
+app.post('/post/comment', commentPost)
 
 
 

@@ -7,7 +7,7 @@ mongoose.connect('mongodb+srv://johnsukadoe:qPz8am91@ledokol.iv6xhsg.mongodb.net
 const uri = "mongodb+srv://johnsukadoe:qPz8am91@ledokol.iv6xhsg.mongodb.net/?retryWrites=true&w=majority&appName=ledokol";
 const client = new MongoClient(uri);
 
-async function main() {
+async function addCommentsToPosts() {
     await client.connect();
     
     // Выбор коллекции
@@ -17,24 +17,36 @@ async function main() {
     // Находим все посты
     const posts = await collection.find().toArray();
     
-    // Для каждого поста обновляем массив likes
+    // Создаем комментарии и добавляем их к каждому посту
     for (const post of posts) {
-        // Перебираем массив likes и обновляем значения
-        post.likes.forEach(like => {
-            like.liker_id = "41"; // Заменяем идентификатор на "41"
-            like.timestamp = 1709125712; // Устанавливаем новый формат времени
-        });
+        const comments = [];
         
-        // Обновляем пост в базе данных
+        // Создаем комментарии для каждого поста
+        for (let i = 1; i <= 5; i++) { // Пример: создаем 5 комментариев для каждого поста
+            const comment = {
+                comment_id: i,
+                text: "Some comment",
+                timestamp: 1709125712,
+                user: {
+                    id: 41,
+                    username: "mirass",
+                    logo: "",
+                },
+                responses: [] // Пустой массив ответов для каждого комментария
+            };
+            comments.push(comment);
+        }
+        
+        // Добавляем комментарии к посту
         await collection.updateOne(
           { _id: post._id }, // Указываем пост по его _id
-          { $set: { likes: post.likes } } // Устанавливаем новое значение для likes
+          { $set: { comments: comments } } // Устанавливаем новое значение для comments
         );
     }
     
-    console.log("All posts updated with modified likes array.");
+    console.log("Comments added to all posts.");
     client.close();
 }
 
 
-main().catch(console.error);
+addCommentsToPosts().catch(console.error);
